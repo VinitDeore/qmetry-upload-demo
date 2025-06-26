@@ -25,12 +25,7 @@ jobs:
           cat > payload.json <<EOF
           {
             "format": "JUNIT",
-            "isZip": false,
-            "fields": {
-              "testCase": {
-                "status": "In Progress"
-              }
-            }
+            "isZip": false
           }
           EOF
 
