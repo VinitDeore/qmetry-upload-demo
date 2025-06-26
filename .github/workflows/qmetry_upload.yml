@@ -10,11 +10,14 @@ jobs:
     env:
       QTM4J_API_KEY: fcf294ee69cb3a47197d8e3ab15933e8af746df0bd8b71b3799af88b92be42f0fe160459449780fa2c23703c9e000c4408919e8c4c09c4dd06ac33afbda153c37c3830f6a6cb97276bd48d8ed3c8cb9d
       QTM4J_BASE_URL: https://qtmcloud.qmetry.com
-      RESULT_FILE: JUnit (7).xml
+      RESULT_FILE: Junit.xml   
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install jq
 
       - name: POST → Get presigned URL from QMetry
         id: presign
@@ -41,7 +44,7 @@ jobs:
           echo "upload_url=$(jq -r '.url' response.json)" >> "$GITHUB_OUTPUT"
           echo "tracking_id=$(jq -r '.trackingId' response.json)" >> "$GITHUB_OUTPUT"
 
-      - name: PUT → Upload JUnit XML to QMetry (S3)
+      - name: PUT → Upload test result file
         run: |
           curl --fail -X PUT \
                -H "Content-Type: multipart/form-data" \
