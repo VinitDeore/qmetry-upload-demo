@@ -1,0 +1,66 @@
+name: Upload Local Test Result to QMetry
+
+on:
+  workflow_dispatch:   # Manual trigger
+
+jobs:
+  upload-to-qmetry:
+    runs-on: ubuntu-latest
+
+    env:
+      # ▸ Replace these secrets in your repo → Settings → Secrets and variables
+      QTM4J_API_KEY:  ${fcf294ee69cb3a47197d8e3ab15933e8af746df0bd8b71b3799af88b92be42f0fe160459449780fa2c23703c9e000c4408919e8c4c09c4dd06ac33afbda153c37c3830f6a6cb97276bd48d8ed3c8cb9d}        # ⮆️  Your QMetry API key
+      QTM4J_BASE_URL: ${https://qtmcloud.qmetry.com}       # ⮆️  https://qtmcloud.qmetry.com
+      RESULT_FILE:    ./path/to/your/JUnit.xml            # ⮆️  XML file relative to repo root
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # ──────────────────────────────────
+      # ① STEP 1 – Get presigned URL   │
+      #    ←    HTTP POST request      │
+      # ──────────────────────────────────
+      - name: POST → /automation/importresult
+        id: presign
+        run: |
+          # ▼▼▼ JSON PAYLOAD (edit as needed) ▼▼▼
+          cat > payload.json <<'EOF'
+          {
+            "format":  "JUNIT",
+            "isZip":   false,
+            "fields": {
+              "testCase": {
+                "status": "In Progress"        // ▸ any valid QMetry status
+              }
+            }
+          }
+          EOF
+          # ▲▲▲ End payload ▲▲▲
+
+          curl -s -X POST \
+               -H "Content-Type: application/json" \
+               -H "apiKey: $QTM4J_API_KEY" \
+               --data @payload.json \
+               "$QTM4J_BASE_URL/rest/api/automation/importresult" \
+               -o response.json
+
+          echo "Presign response:"
+          # cat response.json
+
+          echo "upload_url=$(jq -r '.url'        response.json)" >>"$GITHUB_OUTPUT"
+          echo "tracking_id=$(jq -r '.trackingId' response.json)" >>"$GITHUB_OUTPUT"
+
+      # ──────────────────────────────────
+      # ② STEP 2 – Upload XML file     │
+      #    ←    HTTP PUT request       │
+      # ──────────────────────────────────
+      - name: PUT → (presigned S3 URL)
+        run: |
+          # echo "Uploading: ${RESULT_FILE}"
+          # ls -l "${RESULT_FILE}"
+
+          curl --fail -X PUT \
+               -H "Content-Type: multipart/form-data" \
+               --data-binary "@${RESULT_FILE}" \
+               "${{ steps.presign.outputs.upload_url }}"
