@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      QTM4J_API_KEY: fcf294ee69cb3a47197d8e3ab15933e8af746df0bd8b71b3799af88b92be42f0fe160459449780fa2c23703c9e000c4408919e8c4c09c4dd06ac33afbda153c37c3830f6a6cb97276bd48d8ed3c8cb9d
+      QTM4J_API_KEY: 959feb3b8ed22bef10aa168987dca9c8b99e19eb3c89016fcd053bc272feffc3341c09e75b93ed90a228abb69916b156725d98a23e98b1245dabf5977a524cb18533048936dac6cdd803065a13cff7a9      
       QTM4J_BASE_URL: https://qtmcloud.qmetry.com
       RESULT_FILE: Junit.xml   # ensure this file exists at repo root
 
